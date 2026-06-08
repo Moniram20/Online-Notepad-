@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 1. Global Safety Net - Default Deny Catch-All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reuseable global helpers under Zero-Trust model
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(ownerId) {
+      return isSignedIn() && request.auth.uid == ownerId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Note validator blueprint (Anti-Update-Gap schema guard)
+    function isValidNote(data) {
+      return data.title is string 
+        && data.title.size() >= 0 
+        && data.title.size() <= 200
+        && data.content is string 
+        && data.content.size() <= 1048576
+        && data.ownerId is string 
+        && data.ownerId == request.auth.uid
+        && data.isPinned is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // Secure user notes collection
+    match /notes/{noteId} {
+      // Secure list/get queries ensuring client queries are pre-constrained
+      allow read: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      
+      // Document creation with auto-assigned owner ID validation
+      allow create: if isSignedIn() 
+        && isValidId(noteId) 
+        && isValidNote(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      // Update constraints split with immortal field checks
+      allow update: if isSignedIn()
+        && isValidId(noteId)
+        && resource.data.ownerId == request.auth.uid
+        && isValidNote(request.resource.data)
+        && request.resource.data.ownerId == resource.data.ownerId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+        
+      // Delete operation only allowed for owners
+      allow delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+    }
+  }
+}

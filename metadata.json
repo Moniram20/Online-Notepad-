@@ -1,0 +1,6 @@
+{
+  "name": "Online Notepad",
+  "description": "A professional, dark-themed online notepad application with a rich layout, fully responsive design, and intuitive editor formatting toolbar.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

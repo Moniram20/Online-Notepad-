@@ -1,0 +1,48 @@
+{
+  "entities": {
+    "Note": {
+      "title": "Note",
+      "description": "A single note document created by a user.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the note doc."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the note."
+        },
+        "content": {
+          "type": "string",
+          "description": "Main notepad text content of the note."
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "Firebase UID of user who created this note."
+        },
+        "isPinned": {
+          "type": "boolean",
+          "description": "Whether the note is pinned in user's list."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp indicating when the note was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp indicating when the note was last modified."
+        }
+      },
+      "required": ["title", "ownerId", "isPinned", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "notes": {
+      "schema": "Note",
+      "description": "User notes containing text and formatting state synced to Firebase."
+    }
+  }
+}
